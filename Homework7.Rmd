@@ -1,0 +1,84 @@
+---
+title: "Homework7"
+author: "Brandon Simelgor"
+date: "2023-03-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+https://github.com/Simelgor05/Homework-7.git
+
+```{r, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+data(happy, package="productplots")
+```
+
+
+```{r}
+head(happy)
+```
+
+```{r}
+HAPPY <- readRDS("data/HAPPY.rds")
+head(HAPPY)
+```
+
+```{r}
+HAPPY %>% str()
+HAPPY %>% 
+  ggplot(aes(x = HAPPY)) + geom_bar()
+HAPPY <- HAPPY %>% mutate(
+  happy = factor(tolower(HAPPY))
+) %>% select(-HAPPY)
+
+levels(HAPPY$happy)
+head(HAPPY)
+
+```
+
+Data cleaning: the values “IAP”, “DK” and “NA” all encode missing values. We have to replace all of these instances by the value NA.
+```{r}
+HAPPY <- replace(HAPPY, HAPPY == "IAP", NA)
+HAPPY <- replace(HAPPY, HAPPY == "DK", NA)
+HAPPY <- replace(HAPPY, HAPPY == "NA", NA)
+```
+
+Check the type of the variable and cast into the right type (factor variable for categorical variables). For age, change “89 OR OLDER” to 89 and assume the variable should be numeric.
+```{r}
+HAPPY <- HAPPY %>% mutate(
+  age = replace(AGE, AGE == "89 AND OLDER", 89),
+  age = as.numeric(age)
+) %>% select(-AGE)
+
+HAPPY %>% ggplot(aes(x = age)) + geom_histogram(binwidth=1)
+```
+
+
+Bring all levels of factors into a sensible order.
+```{r}
+HAPPY <- HAPPY %>% mutate(
+  degree = factor(tolower(DEGREE)),
+  degree = factor(degree, levels=c("lt high school", "high school", "junior college", "bachelor", "graduate school"))
+) %>% select(-DEGREE)
+
+HAPPY %>% ggplot(aes(x = degree)) + geom_bar()
+```
+```{r}
+happy %>% summarise(
+  m.happy = mean(as.numeric(happy), na.rm=TRUE)
+  )
+happy %>% group_by(sex) %>% summarise(
+  m.happy = mean(as.numeric(happy), na.rm=TRUE)
+  )
+```
+
+Investigate the relationship between happiness and two other variables in the data. Find a visualization that captures the relationship and write a paragraph to describe it.
+```{r}
+HAPPY %>% ggplot(aes(x = age, fill = happy)) + geom_bar(position = "dodge") + facet_wrap(~degree)
+```
+
+In these graphs you can see the relationship between happiness, age and degree. Each facet of the plot corresponds to a different level of education ranging from high school junior college , and bachelor. Overall it is clear to see that people with a high school degree tend to report higher levels of happiness regardless of age. Additionally we can see that while bachelor and less than high school have a similar level of happiness overall, for bachelor as age increases the happiness decreases while for less than high school the level of happiness remains constant regardless of age. With junior college you can see that there is a peak in happiness around a persons 30s similarly to those with a bachelors degree. 
